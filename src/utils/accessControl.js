@@ -22,6 +22,8 @@ const roles = {
   CUSTOMER: `CUSTOMER`,
 };
 
+const priviledgedRoles = [roles.ROOT];
+
 // async because may need to make some db calls later
 const accessControl = async (action, { accountType, userEmail }) => {
   const { ROOT, DELIVERY, CUSTOMER } = roles;
@@ -65,5 +67,6 @@ const accessControl = async (action, { accountType, userEmail }) => {
 
 module.exports = {
   accessControl,
+  priviledgedRoles,
   ...actions,
 };
