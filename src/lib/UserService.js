@@ -1,8 +1,17 @@
 const bcrypt = require('bcrypt');
 
 class UserService {
-  static getUser = async (email, { db }) => {
-    const user = await db.select().from(`users`);
+  static getCustomer = async (args, { db }) => {
+    const { email } = args;
+    const user = await db.select().from(`users`).where({ email });
+    if (!user.length) return { success: false, error: 'No such user' };
+
+    return { success: true, body: user[0] };
+  };
+
+  static getDeliveryMember = async (args, { db }) => {
+    const { email } = args;
+    const user = await db.select().from(`deliveryteam`).where({ email });
     if (!user.length) return { success: false, error: 'No such user' };
 
     return { success: true, body: user[0] };
@@ -11,7 +20,7 @@ class UserService {
   static registerCustomer = async (args, context) => {
     const { name, email, password, phone, address = '' } = args;
     const { db, logger } = context;
-    const getUserRes = await UserService.getUser(email, context);
+    const getUserRes = await UserService.getCustomer({ email }, context);
     if (getUserRes.success) {
       return { success: false, error: `User already exists` };
     }

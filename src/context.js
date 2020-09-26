@@ -16,7 +16,7 @@ const provideContext = async (req, res, next, db) => {
 
   const authorizationHeader = null || req.headers.authorization;
   if (authorizationHeader) {
-    const token = authorizationHeader.replace('bearer ', '');
+    const token = authorizationHeader.replace('Bearer ', '').replace('bearer ', '');
     try {
       const decoded = await jwt.verify(token, secrets.jwt);
       Object.assign(context, decoded);
