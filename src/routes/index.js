@@ -1,7 +1,7 @@
 const express = require('express');
 const orderRoutes = require('./orders.routes');
 const userRoutes = require('./user.routes');
-const adminRoutes = require('./root.routes');
+const adminRoutes = require('./admin.routes');
 
 const routes = express.Router();
 

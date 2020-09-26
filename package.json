@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/ojaswa1942/devfolio-task-api#readme",
   "devDependencies": {
+    "babel-eslint": "^10.1.0",
     "eslint": "^7.9.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-config-prettier": "^6.11.0",
