@@ -1,12 +1,12 @@
 const express = require('express');
-const { registerDeliveryGuy } = require('../controllers/delivery');
+const { registerDeliveryGuy, getDeliveryGuys } = require('../controllers/delivery');
 const { withPrivilege } = require('../utils/middlewares');
 
 const router = express.Router();
 
 router.use(withPrivilege);
 
-// router.get(`/`, getDeliveryTeam);
+router.get(`/`, getDeliveryGuys);
 router.post(`/add`, registerDeliveryGuy);
 
 module.exports = router;

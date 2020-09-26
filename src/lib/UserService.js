@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const { accessControl, VIEW_USERS } = require('../utils/accessControl');
 
 class UserService {
   static getCustomer = async (args, { db }) => {
@@ -63,6 +64,22 @@ class UserService {
       success: true,
       body: {
         message: `User ${email} successfully registered`,
+      },
+    };
+  };
+
+  static getAllUsers = async (_, context) => {
+    const { db, accountType, userEmail } = context;
+    if (!(await accessControl(VIEW_USERS, { accountType, userEmail })))
+      return { success: false, error: `Not authorized` };
+
+    const users = await db(`users`).select();
+    return {
+      success: true,
+      body: {
+        total: users.length,
+        message: `Users fetched successfully`,
+        users,
       },
     };
   };

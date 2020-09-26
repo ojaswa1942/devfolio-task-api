@@ -1,5 +1,10 @@
 /* eslint-disable camelcase */
-const { accessControl, ADD_PRODUCT, VIEW_PRODUCTS } = require('../utils/accessControl');
+const {
+  accessControl,
+  ADD_PRODUCT,
+  VIEW_PRODUCTS,
+  VIEW_PRODUCT,
+} = require('../utils/accessControl');
 
 class ProductService {
   static getProducts = async (_, context) => {
@@ -14,6 +19,22 @@ class ProductService {
         total: products.length,
         message: `Products fetched successfully`,
         products,
+      },
+    };
+  };
+
+  static getProduct = async ({ productId }, context) => {
+    const { db, accountType, userEmail } = context;
+    if (!(await accessControl(VIEW_PRODUCT, { accountType, userEmail })))
+      return { success: false, error: `Not authorized` };
+
+    const products = await db(`products`).select().where({ pid: productId });
+    if (!products.length) return { success: false, error: `No such product` };
+    return {
+      success: true,
+      body: {
+        message: `Product fetched successfully`,
+        product: products[0],
       },
     };
   };

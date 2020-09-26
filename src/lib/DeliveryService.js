@@ -1,6 +1,10 @@
 const bcrypt = require('bcrypt');
 // const { secrets } = require('../utils/config');
-const { accessControl, ADD_DELIVERY_MEMBER } = require('../utils/accessControl');
+const {
+  accessControl,
+  ADD_DELIVERY_MEMBER,
+  VIEW_DELIVERY_MEMBERS,
+} = require('../utils/accessControl');
 const UserService = require('./UserService');
 
 class DeliveryService {
@@ -41,6 +45,22 @@ class DeliveryService {
       success: true,
       body: {
         message: `Delivery guy ${email} successfully registered`,
+      },
+    };
+  };
+
+  static getDeliveryGuys = async (_, context) => {
+    const { db, accountType, userEmail } = context;
+    if (!(await accessControl(VIEW_DELIVERY_MEMBERS, { accountType, userEmail })))
+      return { success: false, error: `Not authorized` };
+
+    const deliveryGuys = await db(`deliveryteam`).select();
+    return {
+      success: true,
+      body: {
+        total: deliveryGuys.length,
+        message: `Delivery team fetched successfully`,
+        deliveryGuys,
       },
     };
   };
