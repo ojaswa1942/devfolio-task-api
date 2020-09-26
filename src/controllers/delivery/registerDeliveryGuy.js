@@ -1,4 +1,4 @@
-const AdminService = require('../../lib/AdminService');
+const DeliveryService = require('../../lib/DeliveryService');
 const { stripScriptTags } = require('../../utils/helpers');
 
 const registerDeliveryGuy = async (req, res) => {
@@ -10,7 +10,7 @@ const registerDeliveryGuy = async (req, res) => {
       return res.status(400).json('Name, email, password and phone are required');
     }
 
-    const serviceRes = await AdminService.registerDeliveryGuy(
+    const serviceRes = await DeliveryService.registerDeliveryGuy(
       { email, name, phone, password },
       req.context
     );
@@ -19,11 +19,7 @@ const registerDeliveryGuy = async (req, res) => {
     }
     return res.status(400).json(`${serviceRes.error}`);
   } catch (error) {
-    req.context.logger(
-      { type: `error` },
-      `Error while handling admin/delivery/add controller:`,
-      error
-    );
+    req.context.logger({ type: `error` }, `Error while handling /delivery/add controller:`, error);
     return res.status(500).json('Something went wrong!');
   }
 };

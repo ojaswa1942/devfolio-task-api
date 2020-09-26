@@ -6,7 +6,12 @@ class UserService {
     const user = await db.select().from(`users`).where({ email });
     if (!user.length) return { success: false, error: 'No such user' };
 
-    return { success: true, body: user[0] };
+    return {
+      success: true,
+      body: {
+        user: user[0],
+      },
+    };
   };
 
   static getDeliveryMember = async (args, { db }) => {
@@ -14,7 +19,12 @@ class UserService {
     const user = await db.select().from(`deliveryteam`).where({ email });
     if (!user.length) return { success: false, error: 'No such user' };
 
-    return { success: true, body: user[0] };
+    return {
+      success: true,
+      body: {
+        user: user[0],
+      },
+    };
   };
 
   static registerCustomer = async (args, context) => {
@@ -49,7 +59,12 @@ class UserService {
     }
 
     logger(`[REGISTER]`, email, `CUSTOMER`);
-    return { success: true, body: `User ${email} successfully registered` };
+    return {
+      success: true,
+      body: {
+        message: `User ${email} successfully registered`,
+      },
+    };
   };
 }
 

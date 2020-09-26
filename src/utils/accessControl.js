@@ -1,12 +1,16 @@
 // Contains master function asserting roles
+// These mappings can also be kept in database in configurations
+// But for this task, let's do it this way itself - nothing wrong about it either!
 
-const { logger } = require(`./logger`);
+const logger = require(`./logger`);
 
 const actions = {
   CREATE_ROOT: `CREATE_ROOT`,
+  REVOKE_ROOT: `REVOKE_ROOT`,
   ADD_DELIVERY_MEMBER: `ADD_DELIVERY_MEMBER`,
   MODIFY_DELIVERY_MEMBER: `MODIFY_DELIVERY_MEMBER`,
   ADD_PRODUCT: `ADD_PRODUCT`,
+  VIEW_PRODUCTS: `VIEW_PRODUCTS`,
   MODIFY_PRODUCT: `MODIFY_PRODUCT`,
   UPDATE_LOCATION: `UPDATE_LOCATION`,
   CREATE_ORDER: `CREATE_ORDER`,
@@ -43,7 +47,7 @@ const accessControl = async (action, { accountType, userEmail }) => {
     case actions.ADD_PRODUCT:
     case actions.MODIFY_PRODUCT:
     case actions.VIEW_USERS:
-      // allowedRoles = [ROOT];
+      allowedRoles = [ROOT]; // if root, we will never come here: can skip this block
       break;
 
     case actions.CREATE_ORDER:
@@ -55,6 +59,11 @@ const accessControl = async (action, { accountType, userEmail }) => {
     case actions.MODIFY_ORDER_STATUS:
       allowedRoles = [DELIVERY];
       break;
+
+    case actions.VIEW_PRODUCTS:
+      allowedRoles = [CUSTOMER, DELIVERY];
+      break;
+
     default:
       logger({ type: `ERROR` }, `ACCESS_CONTROL: Unknown action ${action}`);
   }

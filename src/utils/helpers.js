@@ -7,7 +7,7 @@ const stripScriptTags = (...args) => {
     stripIgnoreTagBody: ['script'],
   };
 
-  const answerArray = args.map((val) => (val ? xss(val, xssOptions) : null));
+  const answerArray = args.map((val) => (val ? xss(val, xssOptions) : val));
   return answerArray;
 };
 
