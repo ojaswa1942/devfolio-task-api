@@ -49,7 +49,7 @@ module.exports = {
     allowedVicinityETAFactor: 2 * 60,
 
     // maximum allowed concurrent orders per driver
-    allowedMaxOrders: 3 * 60,
+    allowedMaxOrders: 3,
 
     // from location to store while going to deliver an order
     // if satisfied, the driver can be called back and the
@@ -57,12 +57,12 @@ module.exports = {
     allowedStoreVicinityETA: 3 * 60,
 
     // the last updated location
-    // determines if a driver is online or now
-    allowedUpdateInterval: 5 * 60,
+    // determines if a driver is online or not
+    allowedUpdateInterval: 10 * 60,
 
     // Mark a driver offline if location not updated in
     // this much interval. Cron to be run in 1/2 times of this interval
     // to keep edge cases close
-    allowedOfflineInterval: 20 * 60,
+    checkOfflineInterval: 20 * 60,
   },
 };

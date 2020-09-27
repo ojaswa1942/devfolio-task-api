@@ -1,7 +1,7 @@
 'use strict;';
 
-// const registerDeliveryGuy = require('./registerDeliveryGuy');
+const newOrder = require('./newOrder');
 
 module.exports = {
-  // registerDeliveryGuy,
+  newOrder,
 };

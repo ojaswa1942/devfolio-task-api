@@ -12,7 +12,9 @@
     "no-console": "off",
     "no-shadow": "off",
     "prefer-promise-reject-errors": "off",
-    "prefer-const": "off"
+    "prefer-const": "off",
+    "no-await-in-loop": "off", // can't help
+
   },
   "parser": "babel-eslint"
 }

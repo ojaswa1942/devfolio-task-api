@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const {
   location: { store: storeLocation },
+  constraints,
 } = require('../utils/config');
 const { calculateETA } = require('../utils/helpers');
 const {
@@ -10,6 +11,7 @@ const {
   UPDATE_LOCATION,
 } = require('../utils/accessControl');
 const UserService = require('./UserService');
+// const OrderService = require('./OrderService');
 
 class DeliveryService {
   static updateLocation = async (args, context) => {
@@ -44,6 +46,83 @@ class DeliveryService {
         message: `Location successfully acknowledged`,
       },
     };
+  };
+
+  static findAvailableDeliveryGuy = async (args, context) => {
+    const { destination } = args;
+    const { db, logger } = context;
+    try {
+      return db.transaction(async (trx) => {
+        // First case
+        // Carrier has picked an order and just left for delivery
+        // If he is heading in the same direction - assign another
+        const pickedUsers = await trx('deliveryteam')
+          .join('orders', 'deliveryteam.did', 'orders.carrier')
+          .select({
+            did: `deliveryteam.did`,
+            oldOrderDestination: `orders.destination`,
+          })
+          .where({
+            'deliveryteam.status': `ASSIGNED`,
+            'orders.status': `PICKED`,
+          })
+          .andWhere('deliveryteam.storeETA', '<=', constraints.allowedStoreVicinityETA)
+          .orderBy('deliveryteam.storeETA', 'asc');
+
+        // eslint-disable-next-line
+        for( let user of pickedUsers ) {
+          const eta = await calculateETA(user.oldOrderDestination, destination);
+          if (eta <= constraints.allowedVicinityETA) {
+            return { success: true, body: { deliveryGuy: user[0].did } };
+          }
+        }
+
+        // Second case
+        // Carrier has not yet picked an order but has been assigned one
+        // If heading in same direction - assign another
+        const assignedUsers = await trx('deliveryteam')
+          .join('orders', 'deliveryteam.did', 'orders.carrier')
+          .select({
+            did: `deliveryteam.did`,
+            oldOrderDestination: `orders.destination`,
+          })
+          .where({
+            'deliveryteam.status': `ASSIGNED`,
+            'orders.status': `PROCESSING`,
+          })
+          .orderBy('deliveryteam.storeETA', 'asc');
+
+        // eslint-disable-next-line
+        for( let user of assignedUsers ) {
+          const eta = await calculateETA(user.oldOrderDestination, destination);
+          if (eta <= constraints.allowedVicinityETA) {
+            return { success: true, body: { deliveryGuy: user[0].did } };
+          }
+        }
+
+        // Third case
+        // Carrier is free and online
+        // Assign to nearest carrier
+        // Also, consider online only when he has updated his location in allowedUpdateInterval (since no cron setup yet)
+        let allowedInterval = parseInt(Date.now() / 1000, 10) - constraints.allowedUpdateInterval;
+        const onlineUsers = await trx('deliveryteam')
+          .select()
+          .where({
+            status: `ONLINE`,
+          })
+          .andWhere('lastUpdated', '>=', allowedInterval)
+          .orderBy('deliveryteam.storeETA', 'asc');
+
+        if (onlineUsers && onlineUsers.length) {
+          return { success: true, body: { deliveryGuy: onlineUsers[0].did } };
+        }
+
+        return { success: false, error: `Cannot find any active delivery executive for your area` };
+      });
+    } catch (error) {
+      logger({ type: `error` }, `[TRX_Failed]`, error);
+      return { success: false, error };
+    }
   };
 
   static registerDeliveryGuy = async (args, context) => {
