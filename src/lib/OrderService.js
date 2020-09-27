@@ -49,7 +49,9 @@ class OrderService {
         if (!orderCheck.length) return { success: false, error: 'Not authorized' };
         break;
       case `CUSTOMER`:
-        orderCheck = await db('orders').select('orderid').where({ customer_email: userEmail });
+        orderCheck = await db('orders')
+          .select('orderid')
+          .where({ customer_email: userEmail, orderid: id });
         if (!orderCheck.length) return { success: false, error: 'Not authorized' };
         break;
       default:
