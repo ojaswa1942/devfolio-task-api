@@ -36,7 +36,21 @@ const calculateETA = async (source, destination, time = Date.now() / 1000) => {
   return eta;
 };
 
+const orderStatusPrecedence = (status) => {
+  switch (status.toUpperCase()) {
+    case `PROCESSING`:
+      return 1;
+    case `PICKED`:
+      return 2;
+    case `DELIVERED`:
+      return 3;
+    default:
+      return -100;
+  }
+};
+
 module.exports = {
   stripScriptTags,
   calculateETA,
+  orderStatusPrecedence,
 };
