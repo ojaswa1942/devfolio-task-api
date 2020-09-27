@@ -91,9 +91,11 @@ class OrderService {
       return { success: false, error: 'Incorrect updation order, cannot proceed' };
     try {
       await db.transaction(async (trx) => {
-        await trx('orders').update({ status }).where({ orderid: id });
-
         if (status === `PICKED`) {
+          const orderETA = await calculateETA(storeLocation, order[0].destination);
+          await trx('orders')
+            .update({ status, ETA: orderETA })
+            .where({ orderid: order[0].orderid });
           await trx('deliveryteam')
             .update({
               location: storeLocation,
@@ -103,6 +105,7 @@ class OrderService {
             .where({ did: order[0].carrier });
         } else if (status === `DELIVERED`) {
           const storeETA = await calculateETA(order[0].destination, storeLocation);
+          await trx('orders').update({ status, ETA: 0 }).where({ orderid: order[0].orderid });
           await trx('deliveryteam')
             .update({
               status: `ONLINE`,

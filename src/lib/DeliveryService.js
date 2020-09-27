@@ -11,7 +11,6 @@ const {
   UPDATE_LOCATION,
 } = require('../utils/accessControl');
 const UserService = require('./UserService');
-// const OrderService = require('./OrderService');
 
 class DeliveryService {
   // Get active orders of a delivery guy
@@ -41,7 +40,24 @@ class DeliveryService {
         };
         updatePayload.storeETA = await calculateETA(location, storeLocation);
 
-        return trx('deliveryteam').update(updatePayload).where({ email });
+        await trx('deliveryteam').update(updatePayload).where({ email });
+
+        // Update ETAs of active orders
+        let activeOrders = await DeliveryService.getActiveOrders(
+          { did: deliveryUser.did },
+          { ...context, db: trx }
+        );
+        // eslint-disable-next-line
+        for(let activeOrder of activeOrders) {
+          let currentETA = 0;
+          if (activeOrder.status === `PROCESSING`) {
+            currentETA += await calculateETA(location, storeLocation);
+            currentETA += await calculateETA(storeLocation, activeOrder.destination);
+          } else if (activeOrder.status === `PICKED`) {
+            currentETA += await calculateETA(location, activeOrder.destination);
+          }
+          await trx('orders').update({ ETA: currentETA }).where({ orderid: activeOrder.orderid });
+        }
       });
     } catch (error) {
       logger({ type: `error` }, `[TRX_Failed]`, error);
