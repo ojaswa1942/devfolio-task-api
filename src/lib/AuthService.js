@@ -24,7 +24,7 @@ class AuthService {
 
     logger(`[LOGIN]`, payload.userEmail, payload.accountType);
 
-    return { success: true, body: token };
+    return { success: true, body: { message: 'Logged in', token } };
   };
 }
 

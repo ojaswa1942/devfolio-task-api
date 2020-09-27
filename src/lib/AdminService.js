@@ -14,7 +14,7 @@ class AdminService {
     if (!getUserRes.success) {
       return { success: false, error: `User doesn't exist` };
     }
-    const user = getUserRes.body;
+    const { user } = getUserRes.body;
     if (user.type === `ROOT`) return { success: false, error: `User already an admin` };
 
     try {
@@ -45,7 +45,7 @@ class AdminService {
     if (!getUserRes.success) {
       return { success: false, error: `User doesn't exist` };
     }
-    const user = getUserRes.body;
+    const { user } = getUserRes.body;
     if (user.type !== `ROOT`) return { success: false, error: `User not an admin` };
 
     try {
