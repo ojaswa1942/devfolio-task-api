@@ -1,11 +1,13 @@
 const express = require('express');
-const { registerDeliveryGuy, getDeliveryGuys } = require('../controllers/delivery');
-const { withPrivilege } = require('../utils/middlewares');
+const { registerDeliveryGuy, getDeliveryGuys, updateLocation } = require('../controllers/delivery');
+const { withPrivilege, withAuth } = require('../utils/middlewares');
 
 const router = express.Router();
 
-router.use(withPrivilege);
+router.use(withAuth);
+router.post('/updateLocation', updateLocation);
 
+router.use(withPrivilege);
 router.get(`/`, getDeliveryGuys);
 router.post(`/add`, registerDeliveryGuy);
 

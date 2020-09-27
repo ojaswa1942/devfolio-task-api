@@ -1,13 +1,51 @@
 const bcrypt = require('bcrypt');
-// const { secrets } = require('../utils/config');
+const {
+  location: { store: storeLocation },
+} = require('../utils/config');
+const { calculateETA } = require('../utils/helpers');
 const {
   accessControl,
   ADD_DELIVERY_MEMBER,
   VIEW_DELIVERY_MEMBERS,
+  UPDATE_LOCATION,
 } = require('../utils/accessControl');
 const UserService = require('./UserService');
 
 class DeliveryService {
+  static updateLocation = async (args, context) => {
+    const { email, location } = args;
+    const { db, accountType, userEmail, logger } = context;
+    if (!(await accessControl(UPDATE_LOCATION, { accountType, userEmail })))
+      return { success: false, error: `Not authorized` };
+
+    try {
+      await db.transaction(async (trx) => {
+        let deliveryUser = await UserService.getDeliveryMember({ email }, context);
+        if (deliveryUser.success) deliveryUser = deliveryUser.body.user;
+        else throw new Error(deliveryUser.error);
+
+        let updatePayload = {
+          status: deliveryUser.status === `OFFLINE` ? `ONLINE` : deliveryUser.status,
+          location,
+          lastUpdated: parseInt(Date.now() / 1000, 10),
+        };
+        updatePayload.storeETA = await calculateETA(location, storeLocation);
+
+        return trx('deliveryteam').update(updatePayload).where({ email });
+      });
+    } catch (error) {
+      logger({ type: `error` }, `[TRX_Failed]`, error);
+      return { success: false, error };
+    }
+
+    return {
+      success: true,
+      body: {
+        message: `Location successfully acknowledged`,
+      },
+    };
+  };
+
   static registerDeliveryGuy = async (args, context) => {
     const { name, email, password, phone } = args;
     const { db, accountType, userEmail, logger } = context;
