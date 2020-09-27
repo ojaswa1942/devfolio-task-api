@@ -21,6 +21,8 @@ const actions = {
   MODIFY_ORDER_STATUS: `MODIFY_ORDER_STATUS`,
   MODIFY_CUSTOMER: `MODIFY_CUSTOMER`, // Currently not in use
   VIEW_USERS: `VIEW_USERS`,
+  VIEW_ALL_ORDERS: `VIEW_ALL_ORDERS`,
+  VIEW_DELIVERING_ORDERS: `VIEW_DELIVERING_ORDERS`,
 };
 
 const roles = {
@@ -49,6 +51,7 @@ const accessControl = async (action, { accountType, userEmail }) => {
     case actions.MODIFY_DELIVERY_MEMBER:
     case actions.VIEW_DELIVERY_MEMBERS:
     case actions.VIEW_DELIVERY_MEMBER:
+    case actions.VIEW_ALL_ORDERS:
     case actions.ADD_PRODUCT:
     case actions.MODIFY_PRODUCT:
     case actions.VIEW_USERS:
@@ -62,6 +65,7 @@ const accessControl = async (action, { accountType, userEmail }) => {
 
     case actions.UPDATE_LOCATION:
     case actions.MODIFY_ORDER_STATUS:
+    case actions.VIEW_DELIVERING_ORDERS:
       allowedRoles = [DELIVERY];
       break;
 

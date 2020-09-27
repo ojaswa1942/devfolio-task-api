@@ -14,6 +14,14 @@ const UserService = require('./UserService');
 // const OrderService = require('./OrderService');
 
 class DeliveryService {
+  // Get active orders of a delivery guy
+  static getActiveOrders = async ({ did }, { db }) => {
+    return db('orders')
+      .where({ carrier: did })
+      .whereNot({ status: 'DELIVERED' })
+      .orderBy('timestamp', 'desc');
+  };
+
   static updateLocation = async (args, context) => {
     const { email, location } = args;
     const { db, accountType, userEmail, logger } = context;
@@ -61,6 +69,7 @@ class DeliveryService {
           .select({
             did: `deliveryteam.did`,
             oldOrderDestination: `orders.destination`,
+            storeETA: `deliveryteam.storeETA`,
           })
           .where({
             'deliveryteam.status': `ASSIGNED`,
@@ -71,9 +80,12 @@ class DeliveryService {
 
         // eslint-disable-next-line
         for( let user of pickedUsers ) {
-          const eta = await calculateETA(user.oldOrderDestination, destination);
-          if (eta <= constraints.allowedVicinityETA) {
-            return { success: true, body: { deliveryGuy: user[0].did } };
+          const activeOrders = await DeliveryService.getActiveOrders({ did: user.did }, context);
+          if (activeOrders.length < constraints.allowedMaxOrders) {
+            const eta = await calculateETA(user.oldOrderDestination, destination);
+            if (eta <= constraints.allowedVicinityETA) {
+              return { success: true, body: { id: user.did, storeETA: user.storeETA } };
+            }
           }
         }
 
@@ -85,6 +97,7 @@ class DeliveryService {
           .select({
             did: `deliveryteam.did`,
             oldOrderDestination: `orders.destination`,
+            storeETA: `deliveryteam.storeETA`,
           })
           .where({
             'deliveryteam.status': `ASSIGNED`,
@@ -94,9 +107,12 @@ class DeliveryService {
 
         // eslint-disable-next-line
         for( let user of assignedUsers ) {
-          const eta = await calculateETA(user.oldOrderDestination, destination);
-          if (eta <= constraints.allowedVicinityETA) {
-            return { success: true, body: { deliveryGuy: user[0].did } };
+          const activeOrders = await DeliveryService.getActiveOrders({ did: user.did }, context);
+          if (activeOrders.length < constraints.allowedMaxOrders) {
+            const eta = await calculateETA(user.oldOrderDestination, destination);
+            if (eta <= constraints.allowedVicinityETA) {
+              return { success: true, body: { id: user.did, storeETA: user.storeETA } };
+            }
           }
         }
 
@@ -114,7 +130,10 @@ class DeliveryService {
           .orderBy('deliveryteam.storeETA', 'asc');
 
         if (onlineUsers && onlineUsers.length) {
-          return { success: true, body: { deliveryGuy: onlineUsers[0].did } };
+          return {
+            success: true,
+            body: { id: onlineUsers[0].did, storeETA: onlineUsers[0].storeETA },
+          };
         }
 
         return { success: false, error: `Cannot find any active delivery executive for your area` };
